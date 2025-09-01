@@ -11,6 +11,9 @@ class ClothingDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, idx):
-        text = self.df.iloc[idx]["details"]
+        text = self.df.iloc[idx]["details"] if "details" in self.df.columns else self.df.iloc[idx]["text"]
         inputs = self.tokenizer(text, padding="max_length", truncation=True, max_length=self.max_len, return_tensors="pt")
-        return {key: val.squeeze(0) for key, val in inputs.items()}
+        item = {key: val.squeeze(0) for key, val in inputs.items()}
+        if "labels" in self.df.columns:
+            item["labels"] = torch.tensor(self.df.iloc[idx]["labels"], dtype=torch.long)
+        return item
